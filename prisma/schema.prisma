@@ -1,0 +1,46 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql" // Adjust provider as needed (e.g., "sqlite", "mysql")
+  url      = env("DATABASE_URL")
+}
+
+model Stock {
+  ticker    String   @id
+  updatedAt DateTime @updatedAt
+  
+  priceData PriceData[]
+
+  @@map("stocks")
+}
+
+model PriceData {
+  id        String   @id @default(cuid())
+  ticker    String
+  date      DateTime
+  
+  // Scraped Data
+  volume          Float
+  lastTradedPrice Float
+  closingPrice    Float
+  priceChange     Float
+  closingBid      Float
+  closingAsk      Float
+  
+  // Calculated Metrics
+  change1DayPct   Float? // Percentage change from previous day
+  change30DayPct  Float? // Percentage change from 30 days ago
+  relativeVolume  Float? // Today's volume / Avg volume of previous 30 days hiding
+
+  // Relations
+  stock Stock @relation(fields: [ticker], references: [ticker], onDelete: Cascade)
+
+  @@unique([ticker, date]) // Ensure one record per ticker per date
+  @@index([date])
+  @@map("price_data")
+}
