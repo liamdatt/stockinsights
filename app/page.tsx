@@ -1,23 +1,24 @@
-import Link from 'next/link'
-import { prisma } from '@/lib/prisma'
-import { formatDateKey, toDateKey } from '@/lib/date'
+import { formatDateKey } from '@/lib/date'
+import { listAllReports } from '@/lib/pdf'
 import ReportGenerator from './components/ReportGenerator'
 import GenerateButton from './generate-button'
+import DeleteAllButton from './components/DeleteAllButton'
+import { prisma } from '@/lib/prisma'
+import { toDateKey } from '@/lib/date'
 
 export const revalidate = 60 // Revalidate every minute
 
 export default async function Dashboard() {
-  // Find distinct dates that have data
-  // Prisma doesn't support distinct on date nicely with standard findMany unless using groupBy
-    const grouped = await prisma.priceData.groupBy({
-        by: ['date'],
-        orderBy: {
-            date: 'desc'
-        },
-        take: 10
-    })
+  // Fetch available dates with price data (for the report generator dropdown)
+  const grouped = await prisma.priceData.groupBy({
+    by: ['date'],
+    orderBy: { date: 'desc' },
+    take: 30
+  })
+  const availableDates = Array.from(new Set(grouped.map((item) => toDateKey(item.date))))
 
-    const recentDates = Array.from(new Set(grouped.map((item) => toDateKey(item.date))))
+  // Fetch reports that have been generated (from MinIO)
+  const generatedReports = await listAllReports()
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
@@ -28,14 +29,20 @@ export default async function Dashboard() {
         </div>
 
         <div className="p-6">
-          <ReportGenerator initialDates={recentDates} />
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Daily Reports</h2>
+          {/* Report Generator - for creating new reports */}
+          <ReportGenerator initialDates={availableDates} />
 
-          {recentDates.length === 0 ? (
-            <p className="text-gray-500 italic">No reports available properly.</p>
+          {/* Generated Reports Section */}
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-semibold text-gray-800">Generated Reports</h2>
+            {generatedReports.length > 0 && <DeleteAllButton />}
+          </div>
+
+          {generatedReports.length === 0 ? (
+            <p className="text-gray-500 italic">No reports have been generated yet. Use the generator above to create reports.</p>
           ) : (
             <div className="grid gap-4">
-              {recentDates.map((dateStr) => {
+              {generatedReports.map((dateStr) => {
                 return (
                   <div key={dateStr} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition flex justify-between items-center group">
                     <div>
@@ -43,12 +50,6 @@ export default async function Dashboard() {
                       <p className="text-sm text-gray-500">Date: {dateStr}</p>
                     </div>
                     <div className="flex gap-3">
-                      <Link
-                        href={`/reports/${dateStr}`}
-                        className="px-4 py-2 bg-white text-indigo-600 border border-indigo-200 rounded text-sm font-medium hover:bg-indigo-50"
-                      >
-                        View Web Report
-                      </Link>
                       <GenerateButton date={dateStr} />
                     </div>
                   </div>
