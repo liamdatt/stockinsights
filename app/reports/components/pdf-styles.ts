@@ -1,226 +1,251 @@
 import { StyleSheet } from '@react-pdf/renderer'
 
-// Color palette based on template.md specification
+// Professional color palette
 export const colors = {
-    background: '#fff',
-    text: '#1a202c',
+    // Text
+    textPrimary: '#1A202C',
+    textSecondary: '#4A5568',
     textMuted: '#718096',
-    border: '#edf2f7',
-    tableHeader: '#f7fafc',
-    positive: '#38a169',
-    negativeBg: '#fff5f5',
-    positiveBg: '#e6fffa',
-    negative: '#e53e3e',
-    blue: '#3182ce',
+
+    // Status
+    positive: '#2F855A',
+    positiveBg: '#F0FFF4',
+    negative: '#C53030',
+    negativeBg: '#FFF5F5',
+
+    // Accents
+    blue: '#3182CE',
+    amber: '#D69E2E',
+    amberBg: '#FFFAF0',
+
+    // Backgrounds
+    headerBg: '#1A365D',
+    cardBg: '#FFFFFF',
+    tableBg: '#F8FAFC',
+    border: '#E2E8F0',
+    borderDark: '#CBD5E0',
+
+    // Branding
+    brand: '#4C51BF',
+    accent: '#ED8936',
 }
 
 export const styles = StyleSheet.create({
-    // Page layouts
+    // Page layout
     page: {
-        padding: 25, // Reduced from 40
-        fontFamily: 'Helvetica',
-        backgroundColor: colors.background,
-        fontSize: 9, // Reduced from 10
+        padding: 20,
+        fontSize: 8,
+        fontFamily: 'Roboto',
+        backgroundColor: '#FAFBFC',
     },
 
-    // Header section
-    header: {
-        fontSize: 16, // Reduced from 20
-        marginBottom: 10, // Reduced from 20
-        color: colors.text,
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
-        paddingBottom: 8,
+    // ============ ROW 1: Header (10%) ============
+    headerRow: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'flex-end',
-    },
-    headerTitle: {
-        fontSize: 20, // Reduced from 24
-        fontWeight: 'bold',
+        alignItems: 'center',
+        paddingBottom: 8,
+        borderBottom: `1pt solid ${colors.border}`,
+        marginBottom: 10,
     },
     headerBrand: {
-        color: colors.text,
+        flexDirection: 'row',
+        alignItems: 'baseline',
     },
-    headerAccent: {
-        color: '#ed8936', // Orange accent
+    brandLogo: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: colors.brand,
     },
-    headerSubtitle: {
-        fontSize: 8,
+    brandAccent: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: colors.accent,
+    },
+    brandSubtitle: {
+        fontSize: 7,
         color: colors.textMuted,
-        marginTop: 2,
+        marginLeft: 6,
+        letterSpacing: 1.5,
+        textTransform: 'uppercase',
+    },
+    headerRight: {
+        alignItems: 'flex-end',
     },
     headerDate: {
         fontSize: 10,
-        color: colors.textMuted,
-        textAlign: 'right',
-    },
-
-    // Market Mood Bar
-    moodContainer: {
-        marginBottom: 12, // Reduced from 20
-    },
-    moodLabel: {
-        fontSize: 8,
-        color: colors.textMuted,
-        marginBottom: 2,
+        fontWeight: 'bold',
+        color: colors.textPrimary,
     },
     moodBar: {
-        height: 8, // Reduced from 12
         flexDirection: 'row',
-        borderRadius: 4,
+        marginTop: 4,
+        height: 6,
+        width: 100,
+        borderRadius: 3,
         overflow: 'hidden',
     },
     moodPositive: {
         backgroundColor: colors.positive,
+        height: '100%',
     },
     moodNegative: {
         backgroundColor: colors.negative,
+        height: '100%',
     },
-    moodText: {
+    moodLabel: {
         fontSize: 6,
-        color: '#fff',
-        textAlign: 'center',
-        lineHeight: 1.4,
-    },
-
-    // Column layouts
-    columnWrapper: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        gap: 12,
-    },
-    column: {
-        flex: 1,
-    },
-
-    // Metric cards (Top Gainers/Losers)
-    card: {
-        padding: 6, // Reduced from 10
-        borderRadius: 4,
-        borderWidth: 1,
-        borderColor: colors.border,
-        marginBottom: 4, // Reduced from 8
-    },
-    cardGainer: {
-        backgroundColor: colors.positiveBg,
-    },
-    cardLoser: {
-        backgroundColor: colors.negativeBg,
-    },
-    cardTicker: {
-        fontSize: 10, // Reduced
-        fontWeight: 'bold',
-        color: colors.text,
-    },
-    cardPrice: {
-        fontSize: 8,
         color: colors.textMuted,
-        marginTop: 1,
-    },
-    cardChange: {
-        fontSize: 9, // Reduced
-        fontWeight: 'bold',
         marginTop: 2,
     },
 
-    // Section headers
-    sectionHeader: {
-        fontSize: 10, // Reduced
-        fontWeight: 'bold',
-        color: colors.text,
-        marginTop: 10, // Reduced from 16
-        marginBottom: 4, // Reduced from 8
-        borderLeftWidth: 3,
-        borderLeftColor: colors.blue,
-        paddingLeft: 6,
+    // ============ GRID LAYOUT ============
+    gridRow: {
+        flexDirection: 'row',
+        gap: 12,
+        marginBottom: 10,
+    },
+    gridCol2: {
+        flex: 1,
+    },
+    gridCol3: {
+        flex: 1,
     },
 
-    // Tables
-    tableHeader: {
-        backgroundColor: colors.tableHeader,
-        padding: 3, // Reduced
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+    // ============ CARD STYLING ============
+    card: {
+        backgroundColor: colors.cardBg,
+        borderRadius: 4,
+        border: `0.5pt solid ${colors.border}`,
+        padding: 8,
     },
-    tableHeaderCell: {
-        fontSize: 7, // Reduced
+    cardHeader: {
+        fontSize: 7,
         fontWeight: 'bold',
         color: colors.textMuted,
-    },
-    tableRow: {
-        borderBottomWidth: 0.5,
-        borderBottomColor: colors.border,
-        padding: 3, // Reduced
-        flexDirection: 'row',
-    },
-    tableRowAlt: {
-        backgroundColor: '#fafafa',
-    },
-    tableCell: {
-        fontSize: 7, // Reduced
-        color: colors.text,
-    },
-    tableCellTicker: {
-        fontSize: 8, // Reduced
-        fontWeight: 'bold',
-    },
-    tableCellRight: {
-        textAlign: 'right',
+        textTransform: 'uppercase',
+        letterSpacing: 0.8,
+        marginBottom: 6,
+        paddingBottom: 4,
+        borderBottom: `0.5pt solid ${colors.border}`,
     },
 
-    // Value styling
-    positive: {
+    // ============ MINI CARDS (Top Movers) ============
+    miniCard: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 4,
+        paddingHorizontal: 6,
+        marginBottom: 3,
+        borderRadius: 3,
+        backgroundColor: colors.tableBg,
+    },
+    miniCardGainer: {
+        borderLeft: `2pt solid ${colors.positive}`,
+    },
+    miniCardLoser: {
+        borderLeft: `2pt solid ${colors.negative}`,
+    },
+    tickerSymbol: {
+        fontWeight: 'bold',
+        fontSize: 9,
+        color: colors.textPrimary,
+    },
+    priceSmall: {
+        fontSize: 7,
+        color: colors.textMuted,
+    },
+
+    // ============ PERCENTAGE PILLS ============
+    pillPositive: {
+        color: colors.positive,
+        backgroundColor: colors.positiveBg,
+        paddingHorizontal: 5,
+        paddingVertical: 2,
+        borderRadius: 3,
+        fontSize: 8,
+        fontWeight: 'bold',
+    },
+    pillNegative: {
+        color: colors.negative,
+        backgroundColor: colors.negativeBg,
+        paddingHorizontal: 5,
+        paddingVertical: 2,
+        borderRadius: 3,
+        fontSize: 8,
+        fontWeight: 'bold',
+    },
+
+    // ============ TABLE STYLING ============
+    tableHeader: {
+        flexDirection: 'row',
+        backgroundColor: colors.tableBg,
+        paddingVertical: 4,
+        paddingHorizontal: 4,
+        borderBottom: `1pt solid ${colors.borderDark}`,
+    },
+    tableHeaderCell: {
+        fontSize: 6,
+        fontWeight: 'bold',
+        color: colors.textMuted,
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    tableRow: {
+        flexDirection: 'row',
+        paddingVertical: 3,
+        paddingHorizontal: 4,
+        borderBottom: `0.5pt solid ${colors.border}`,
+    },
+    tableRowAlt: {
+        backgroundColor: '#FAFBFC',
+    },
+    tableRowHighlight: {
+        backgroundColor: colors.amberBg,
+    },
+    tableCell: {
+        fontSize: 7,
+        color: colors.textSecondary,
+    },
+    tableCellTicker: {
+        fontSize: 8,
+        fontWeight: 'bold',
+        color: colors.textPrimary,
+    },
+
+    // ============ STATUS INDICATORS ============
+    statusPositive: {
         color: colors.positive,
         fontWeight: 'bold',
     },
-    negative: {
+    statusNegative: {
         color: colors.negative,
         fontWeight: 'bold',
     },
 
-    // Footer
+    // ============ FOOTER ============
     footer: {
         position: 'absolute',
-        bottom: 20,
-        left: 25,
-        right: 25,
+        bottom: 15,
+        left: 20,
+        right: 20,
         textAlign: 'center',
-        fontSize: 7,
+        fontSize: 6,
         color: colors.textMuted,
-        borderTopWidth: 0.5,
-        borderTopColor: colors.border,
-        paddingTop: 8,
-    },
-
-    // Sparkline container
-    sparklineContainer: {
-        width: 60,
-        height: 20,
-    },
-
-    // Price position bar
-    priceBarContainer: {
-        width: 60,
-        height: 10,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    priceBarTrack: {
-        flex: 1,
-        height: 4,
-        backgroundColor: '#e2e8f0',
-        borderRadius: 2,
+        borderTop: `0.5pt solid ${colors.border}`,
+        paddingTop: 6,
     },
 })
 
-// Table column widths
+// Column width configurations
 export const columnWidths = {
-    ticker: '15%',
-    price: '15%',
-    volume: '15%',
-    change: '15%',
-    sparkline: '20%',
-    position: '20%',
+    ticker: 45,
+    price: 40,
+    change: 38,
+    volume: 35,
+    relVol: 32,
+    volatility: 32,
+    dist52w: 35,
+    status: 20,
 }

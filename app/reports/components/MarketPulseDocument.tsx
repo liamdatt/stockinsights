@@ -1,10 +1,10 @@
-import { Document, Page, View, Text, Font, Image } from '@react-pdf/renderer'
-import { styles, colors } from './pdf-styles'
+import { Document, Page, View, Text, Font, Image, Svg, Polyline } from '@react-pdf/renderer'
+import { styles, colors, columnWidths } from './pdf-styles'
 import type { ReportData, StockWithMetrics } from '@/lib/report-data'
 
+// Register Roboto font for professional typography
 Font.register({
     family: 'Roboto',
-    src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf',
     fonts: [
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-regular-webfont.ttf', fontWeight: 'normal' },
         { src: 'https://cdnjs.cloudflare.com/ajax/libs/ink/3.1.10/fonts/Roboto/roboto-bold-webfont.ttf', fontWeight: 'bold' }
@@ -18,177 +18,324 @@ interface MarketPulseDocumentProps {
 export function MarketPulseDocument({ data }: MarketPulseDocumentProps) {
     return (
         <Document>
-            <Page size="A4" style={[styles.page, { fontFamily: 'Roboto' }]}>
-                {/* Header */}
-                <View style={styles.header}>
-                    <View>
-                        <Text style={styles.headerTitle}>
-                            <Text style={styles.headerBrand}>Flo</Text>
-                            <Text style={styles.headerAccent}>Pro</Text>
-                        </Text>
-                        <Text style={styles.headerSubtitle}>EQUITY INSIGHTS</Text>
+            <Page size="A4" style={styles.page}>
+                {/* ============ ROW 1: HEADER & MARKET BREADTH (10%) ============ */}
+                <View style={styles.headerRow}>
+                    <View style={styles.headerBrand}>
+                        <Text style={styles.brandLogo}>Flo</Text>
+                        <Text style={styles.brandAccent}>Pro</Text>
+                        <Text style={styles.brandSubtitle}>Equity Insights</Text>
                     </View>
-                    <View>
+                    <View style={styles.headerRight}>
                         <Text style={styles.headerDate}>{data.formattedDate}</Text>
-                        <Text style={[styles.headerSubtitle, { textAlign: 'right' }]}>Daily Market Summary</Text>
+                        <View style={styles.moodBar}>
+                            <View style={[styles.moodPositive, { width: `${data.marketMood}%` }]} />
+                            <View style={[styles.moodNegative, { width: `${100 - data.marketMood}%` }]} />
+                        </View>
+                        <Text style={styles.moodLabel}>{data.totalGainers}G / {data.totalLosers}L</Text>
                     </View>
                 </View>
 
-                {/* Market Mood Bar */}
-                <View style={styles.moodContainer}>
-                    <Text style={styles.moodLabel}>
-                        Market Mood: {data.totalGainers} Gainers / {data.totalLosers} Losers
-                    </Text>
-                    <View style={styles.moodBar}>
-                        <View style={[styles.moodPositive, { width: `${data.marketMood}%` }]}>
-                            <Text style={styles.moodText}>{data.marketMood.toFixed(0)}%</Text>
-                        </View>
-                        <View style={[styles.moodNegative, { width: `${100 - data.marketMood}%` }]}>
-                            <Text style={styles.moodText}>{(100 - data.marketMood).toFixed(0)}%</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Top Gainers/Losers - Compact Cards */}
-                <View style={styles.columnWrapper}>
-                    <View style={styles.column}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: colors.positive }]}>Top Gainers</Text>
+                {/* ============ ROW 2: TOP MOVERS (25%) ============ */}
+                <View style={styles.gridRow}>
+                    {/* Top Gainers */}
+                    <View style={[styles.card, styles.gridCol3]}>
+                        <Text style={styles.cardHeader}>Top Daily Gainers</Text>
                         {data.topGainers.slice(0, 3).map(stock => (
-                            <CompactCard key={stock.ticker} stock={stock} type="gainer" />
+                            <MiniCard key={stock.ticker} stock={stock} type="gainer" />
                         ))}
                     </View>
-                    <View style={styles.column}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: colors.negative }]}>Top Losers</Text>
+
+                    {/* Top Losers */}
+                    <View style={[styles.card, styles.gridCol3]}>
+                        <Text style={styles.cardHeader}>Top Daily Losers</Text>
                         {data.topLosers.slice(0, 3).map(stock => (
-                            <CompactCard key={stock.ticker} stock={stock} type="loser" />
+                            <MiniCard key={stock.ticker} stock={stock} type="loser" />
                         ))}
                     </View>
-                </View>
 
-                {/* Hot Tab & Shock Tab */}
-                <View style={[styles.columnWrapper, { marginTop: 10 }]}>
-                    <View style={styles.column}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: '#ed8936' }]}>Volume Leaders</Text>
-                        <CompactTable stocks={data.volumeLeaders.slice(0, 5)} showVolume />
-                    </View>
-                    <View style={styles.column}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: '#805ad5' }]}>Unusual Volume</Text>
-                        <CompactTable stocks={data.unusualVolume.slice(0, 5)} showRelVol />
-                    </View>
-                </View>
-
-                {/* Momentum Leaders - Single Row Tables */}
-                <View style={[styles.columnWrapper, { marginTop: 10 }]}>
-                    <View style={styles.column}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: colors.positive }]}>Daily Leaders (1D%)</Text>
-                        <CompactTable stocks={data.momentumDaily.slice(0, 5)} showChange1d />
-                    </View>
-                    <View style={styles.column}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: colors.blue }]}>Monthly Leaders (30D%)</Text>
-                        <CompactTable stocks={data.momentumMonthly.slice(0, 5)} showChange30d />
+                    {/* Market Summary */}
+                    <View style={[styles.card, styles.gridCol3]}>
+                        <Text style={styles.cardHeader}>Market Summary</Text>
+                        <View style={{ gap: 4 }}>
+                            <SummaryRow label="Total Stocks" value={data.totalTickers.toString()} />
+                            <SummaryRow label="Gainers" value={data.totalGainers.toString()} positive />
+                            <SummaryRow label="Losers" value={data.totalLosers.toString()} negative />
+                            <SummaryRow label="Market Sentiment" value={`${data.marketMood.toFixed(0)}% Bullish`} />
+                        </View>
                     </View>
                 </View>
 
-                {/* Recovery Section (if any) */}
-                {data.recoveryStocks.length > 0 && (
-                    <View style={{ marginTop: 10 }}>
-                        <Text style={[styles.sectionHeader, { borderLeftColor: colors.positive }]}>
-                            Recovery Watch (1D% &gt;3%, 30D% &lt;-10%)
-                        </Text>
-                        <CompactTable stocks={data.recoveryStocks.slice(0, 4)} showBoth />
+                {/* ============ ROW 3: VOLUME & SURGE (30%) ============ */}
+                <View style={styles.gridRow}>
+                    {/* Market Liquidity */}
+                    <View style={[styles.card, styles.gridCol2]}>
+                        <Text style={styles.cardHeader}>Market Liquidity (Top Volume)</Text>
+                        <DataTable
+                            stocks={data.volumeLeaders.slice(0, 6)}
+                            columns={['ticker', 'price', 'volume', 'change', 'status']}
+                        />
                     </View>
-                )}
 
+                    {/* Activity Surges */}
+                    <View style={[styles.card, styles.gridCol2]}>
+                        <Text style={styles.cardHeader}>Activity Surges (Rel. Volume &gt;2x)</Text>
+                        <DataTable
+                            stocks={data.unusualVolume.slice(0, 6)}
+                            columns={['ticker', 'price', 'relVol', 'change', 'status']}
+                            highlightHighVolume
+                        />
+                    </View>
+                </View>
+
+                {/* ============ ROW 4: MOMENTUM & RECOVERY (35%) ============ */}
+                <View style={styles.gridRow}>
+                    {/* Medium-Term Momentum */}
+                    <View style={[styles.card, styles.gridCol2]}>
+                        <Text style={styles.cardHeader}>Medium-Term Momentum (30D Leaders)</Text>
+                        <DataTable
+                            stocks={data.momentumMonthly.slice(0, 6)}
+                            columns={['ticker', 'price', 'change30d', 'dist52w', 'sparkline']}
+                            showSparklines
+                        />
+                    </View>
+
+                    {/* Recovery Watch */}
+                    <View style={[styles.card, styles.gridCol2]}>
+                        <Text style={styles.cardHeader}>Recovery Watch (Daily Bounce)</Text>
+                        {data.recoveryStocks.length > 0 ? (
+                            <DataTable
+                                stocks={data.recoveryStocks.slice(0, 6)}
+                                columns={['ticker', 'price', 'change', 'change30d', 'volatility']}
+                            />
+                        ) : (
+                            <Text style={{ fontSize: 7, color: colors.textMuted, textAlign: 'center', padding: 8 }}>
+                                No recovery candidates today
+                            </Text>
+                        )}
+                    </View>
+                </View>
 
                 {/* Footer */}
                 <Text style={styles.footer}>
-                    Generated by FloPro Equity Insights • {new Date().getFullYear()}
+                    Generated by FloPro Equity Insights • {new Date().getFullYear()} • Confidential
                 </Text>
             </Page>
-        </Document >
+        </Document>
     )
 }
 
-// Compact card for top gainers/losers
-function CompactCard({ stock, type }: { stock: StockWithMetrics; type: 'gainer' | 'loser' }) {
+// ============ MINI CARD COMPONENT ============
+function MiniCard({ stock, type }: { stock: StockWithMetrics; type: 'gainer' | 'loser' }) {
     const isGainer = type === 'gainer'
     return (
-        <View style={[styles.card, isGainer ? styles.cardGainer : styles.cardLoser, { padding: 4, marginBottom: 3 }]}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <Text style={[styles.cardTicker, { fontSize: 10 }]}>
-                        {stock.ticker}
-                    </Text>
-                    <VibeEmoji change={stock.change1DayPct} size={12} />
-                </View>
-                <Text style={[styles.cardChange, isGainer ? styles.positive : styles.negative, { fontSize: 9 }]}>
-                    {formatPercent(stock.change1DayPct)}
-                </Text>
+        <View style={[styles.miniCard, isGainer ? styles.miniCardGainer : styles.miniCardLoser]}>
+            <View>
+                <Text style={styles.tickerSymbol}>{stock.ticker}</Text>
+                <Text style={styles.priceSmall}>${stock.closingPrice.toFixed(2)}</Text>
             </View>
-            <Text style={[styles.cardPrice, { fontSize: 8 }]}>${stock.closingPrice.toFixed(2)}</Text>
+            <Text style={isGainer ? styles.pillPositive : styles.pillNegative}>
+                {formatPercent(stock.change1DayPct)}
+            </Text>
         </View>
     )
 }
 
-// Compact table without arrows, with vibes
-function CompactTable({ stocks, showVolume, showRelVol, showChange1d, showChange30d, showBoth }: {
-    stocks: StockWithMetrics[]
-    showVolume?: boolean
-    showRelVol?: boolean
-    showChange1d?: boolean
-    showChange30d?: boolean
-    showBoth?: boolean
+// ============ SUMMARY ROW COMPONENT ============
+function SummaryRow({ label, value, positive, negative }: {
+    label: string;
+    value: string;
+    positive?: boolean;
+    negative?: boolean
 }) {
+    const valueColor = positive ? colors.positive : negative ? colors.negative : colors.textPrimary
+    return (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 2 }}>
+            <Text style={{ fontSize: 7, color: colors.textMuted }}>{label}</Text>
+            <Text style={{ fontSize: 8, fontWeight: 'bold', color: valueColor }}>{value}</Text>
+        </View>
+    )
+}
+
+// ============ DATA TABLE COMPONENT ============
+type ColumnType = 'ticker' | 'price' | 'volume' | 'change' | 'change30d' | 'relVol' | 'volatility' | 'dist52w' | 'status' | 'sparkline'
+
+function DataTable({ stocks, columns, highlightHighVolume, showSparklines }: {
+    stocks: StockWithMetrics[]
+    columns: ColumnType[]
+    highlightHighVolume?: boolean
+    showSparklines?: boolean
+}) {
+    const headerLabels: Record<ColumnType, string> = {
+        ticker: 'TICKER',
+        price: 'PRICE',
+        volume: 'VOLUME',
+        change: '1D CHG',
+        change30d: '30D CHG',
+        relVol: 'REL. VOL',
+        volatility: 'RISK',
+        dist52w: '52W DIST',
+        status: '',
+        sparkline: '30D TREND',
+    }
+
+    const colWidths: Record<ColumnType, number> = {
+        ticker: 45,
+        price: 40,
+        volume: 38,
+        change: 40,
+        change30d: 40,
+        relVol: 38,
+        volatility: 32,
+        dist52w: 40,
+        status: 18,
+        sparkline: 50,
+    }
+
     return (
         <View>
+            {/* Header */}
             <View style={styles.tableHeader}>
-                <Text style={[styles.tableHeaderCell, { width: 50 }]}>Ticker</Text>
-                <Text style={[styles.tableHeaderCell, { width: 45, textAlign: 'right' }]}>Price</Text>
-                {showVolume && <Text style={[styles.tableHeaderCell, { width: 40, textAlign: 'right' }]}>Vol</Text>}
-                {showRelVol && <Text style={[styles.tableHeaderCell, { width: 35, textAlign: 'right' }]}>R.Vol</Text>}
-                {(showChange1d || showVolume || showRelVol) && (
-                    <Text style={[styles.tableHeaderCell, { width: 45, textAlign: 'right' }]}>1D%</Text>
-                )}
-                {showChange30d && <Text style={[styles.tableHeaderCell, { width: 45, textAlign: 'right' }]}>30D%</Text>}
-                {showBoth && (
-                    <>
-                        <Text style={[styles.tableHeaderCell, { width: 40, textAlign: 'right' }]}>1D%</Text>
-                        <Text style={[styles.tableHeaderCell, { width: 40, textAlign: 'right' }]}>30D%</Text>
-                    </>
-                )}
-                <Text style={[styles.tableHeaderCell, { width: 25, textAlign: 'center' }]}>Vibe</Text>
+                {columns.map(col => (
+                    <Text key={col} style={[styles.tableHeaderCell, { width: colWidths[col], textAlign: col === 'ticker' ? 'left' : 'right' }]}>
+                        {headerLabels[col]}
+                    </Text>
+                ))}
             </View>
-            {stocks.map((stock, i) => (
-                <View key={stock.ticker} style={[styles.tableRow, i % 2 === 1 ? styles.tableRowAlt : {}]}>
-                    <Text style={[styles.tableCellTicker, { width: 50 }]}>{stock.ticker}</Text>
-                    <Text style={[styles.tableCell, { width: 45, textAlign: 'right' }]}>${stock.closingPrice.toFixed(2)}</Text>
-                    {showVolume && <Text style={[styles.tableCell, { width: 40, textAlign: 'right' }]}>{formatCompact(stock.volume)}</Text>}
-                    {showRelVol && <Text style={[styles.tableCell, { width: 35, textAlign: 'right' }]}>{(stock.relativeVolume ?? 0).toFixed(1)}x</Text>}
-                    {(showChange1d || showVolume || showRelVol) && (
-                        <Text style={[styles.tableCell, { width: 45, textAlign: 'right' }, getChangeStyle(stock.change1DayPct)]}>{formatPercent(stock.change1DayPct)}</Text>
-                    )}
-                    {showChange30d && (
-                        <Text style={[styles.tableCell, { width: 45, textAlign: 'right' }, getChangeStyle(stock.change30DayPct)]}>{formatPercent(stock.change30DayPct)}</Text>
-                    )}
-                    {showBoth && (
-                        <>
-                            <Text style={[styles.tableCell, { width: 40, textAlign: 'right' }, getChangeStyle(stock.change1DayPct)]}>{formatPercent(stock.change1DayPct)}</Text>
-                            <Text style={[styles.tableCell, { width: 40, textAlign: 'right' }, getChangeStyle(stock.change30DayPct)]}>{formatPercent(stock.change30DayPct)}</Text>
-                        </>
-                    )}
-                    <View style={{ width: 25, alignItems: 'center', justifyContent: 'center' }}>
-                        <VibeEmoji change={stock.change1DayPct} size={10} />
+
+            {/* Data Rows */}
+            {stocks.map((stock, i) => {
+                const isHighVolume = highlightHighVolume && (stock.relativeVolume ?? 0) > 5.0
+                const rowStyles = [
+                    styles.tableRow,
+                    ...(i % 2 === 1 ? [styles.tableRowAlt] : []),
+                    ...(isHighVolume ? [styles.tableRowHighlight] : [])
+                ]
+                return (
+                    <View key={stock.ticker} style={rowStyles}>
+                        {columns.map(col => (
+                            <TableCell key={col} stock={stock} column={col} width={colWidths[col]} showSparklines={showSparklines} />
+                        ))}
                     </View>
-                </View>
-            ))}
+                )
+            })}
+
             {stocks.length === 0 && (
-                <Text style={{ fontSize: 7, color: colors.textMuted, padding: 4, textAlign: 'center' }}>No data</Text>
+                <Text style={{ fontSize: 7, color: colors.textMuted, padding: 6, textAlign: 'center' }}>
+                    No data available
+                </Text>
             )}
         </View>
     )
 }
 
-// Utility functions
+// ============ TABLE CELL COMPONENT ============
+function TableCell({ stock, column, width, showSparklines }: {
+    stock: StockWithMetrics;
+    column: ColumnType;
+    width: number;
+    showSparklines?: boolean;
+}) {
+    switch (column) {
+        case 'ticker':
+            return <Text style={[styles.tableCellTicker, { width }]}>{stock.ticker}</Text>
+        case 'price':
+            return <Text style={[styles.tableCell, { width, textAlign: 'right' }]}>${stock.closingPrice.toFixed(2)}</Text>
+        case 'volume':
+            return <Text style={[styles.tableCell, { width, textAlign: 'right' }]}>{formatCompact(stock.volume)}</Text>
+        case 'change':
+            return (
+                <Text style={[styles.tableCell, { width, textAlign: 'right' }, getChangeStyle(stock.change1DayPct)]}>
+                    {formatPercent(stock.change1DayPct)}
+                </Text>
+            )
+        case 'change30d':
+            return (
+                <Text style={[styles.tableCell, { width, textAlign: 'right' }, getChangeStyle(stock.change30DayPct)]}>
+                    {formatPercent(stock.change30DayPct)}
+                </Text>
+            )
+        case 'relVol':
+            return (
+                <Text style={[styles.tableCell, { width, textAlign: 'right', fontWeight: (stock.relativeVolume ?? 0) > 5 ? 'bold' : 'normal' }]}>
+                    {(stock.relativeVolume ?? 0).toFixed(1)}x
+                </Text>
+            )
+        case 'volatility':
+            return (
+                <Text style={[styles.tableCell, { width, textAlign: 'right' }]}>
+                    {stock.volatilityRank !== null ? stock.volatilityRank.toFixed(1) : '-'}
+                </Text>
+            )
+        case 'dist52w':
+            return (
+                <Text style={[styles.tableCell, { width, textAlign: 'right' }, getChangeStyle(stock.high52wDistance)]}>
+                    {formatPercent(stock.high52wDistance)}
+                </Text>
+            )
+        case 'status':
+            return (
+                <View style={{ width, alignItems: 'center' }}>
+                    <StatusIndicator change={stock.change1DayPct} />
+                </View>
+            )
+        case 'sparkline':
+            return showSparklines && stock.priceHistory.length > 0 ? (
+                <View style={{ width, height: 14 }}>
+                    <Sparkline data={stock.priceHistory} width={width - 4} height={12} />
+                </View>
+            ) : (
+                <Text style={[styles.tableCell, { width, textAlign: 'center' }]}>-</Text>
+            )
+        default:
+            return <Text style={[styles.tableCell, { width }]}>-</Text>
+    }
+}
+
+// ============ SPARKLINE COMPONENT ============
+function Sparkline({ data, width, height }: { data: number[]; width: number; height: number }) {
+    if (data.length < 2) return null
+
+    const min = Math.min(...data)
+    const max = Math.max(...data)
+    const range = max - min || 1
+
+    const points = data.map((val, i) => {
+        const x = (i / (data.length - 1)) * width
+        const y = height - ((val - min) / range) * (height - 2) - 1
+        return `${x},${y}`
+    }).join(' ')
+
+    const isPositive = data[data.length - 1] >= data[0]
+
+    return (
+        <Svg width={width} height={height}>
+            <Polyline
+                points={points}
+                fill="none"
+                stroke={isPositive ? colors.positive : colors.negative}
+                strokeWidth={1}
+            />
+        </Svg>
+    )
+}
+
+// ============ STATUS INDICATOR ============
+function StatusIndicator({ change }: { change: number | null }) {
+    if (change === null) return <Text style={{ fontSize: 6, color: colors.textMuted }}>-</Text>
+
+    const isPositive = change >= 0
+    return (
+        <View style={{
+            width: 6,
+            height: 6,
+            borderRadius: 3,
+            backgroundColor: isPositive ? colors.positive : colors.negative,
+        }} />
+    )
+}
+
+// ============ UTILITY FUNCTIONS ============
 function formatPercent(value: number | null): string {
     if (value === null) return '-'
     const sign = value >= 0 ? '+' : ''
@@ -204,37 +351,5 @@ function formatCompact(num: number): string {
 
 function getChangeStyle(value: number | null) {
     if (value === null) return {}
-    return value >= 0 ? styles.positive : styles.negative
-}
-
-// Twemoji CDN base URL (emoji images)
-const TWEMOJI_BASE = 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/72x72'
-
-// Emoji codepoints for Twemoji
-const EMOJI_CODES = {
-    rocket: '1f680',      // 🚀
-    fire: '1f525',        // 🔥
-    chartUp: '1f4c8',     // 📈
-    triangleDown: '1f53b', // 🔻 (red triangle down)
-    ice: '1f9ca',         // 🧊
-    chartDown: '1f4c9',   // 📉
-    dot: '2022',          // •
-}
-
-function VibeEmoji({ change, size = 10 }: { change: number | null; size?: number }) {
-    let code = EMOJI_CODES.dot
-    if (change === null) code = EMOJI_CODES.dot
-    else if (change >= 15) code = EMOJI_CODES.rocket
-    else if (change >= 5) code = EMOJI_CODES.fire
-    else if (change > 0) code = EMOJI_CODES.chartUp
-    else if (change <= -10) code = EMOJI_CODES.triangleDown
-    else if (change <= -5) code = EMOJI_CODES.ice
-    else code = EMOJI_CODES.chartDown
-
-    return (
-        <Image
-            src={`${TWEMOJI_BASE}/${code}.png`}
-            style={{ width: size, height: size }}
-        />
-    )
+    return value >= 0 ? styles.statusPositive : styles.statusNegative
 }

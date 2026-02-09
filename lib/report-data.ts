@@ -11,6 +11,7 @@ export interface StockWithMetrics {
     volatilityRank: number | null
     high52w: number | null
     low52w: number | null
+    high52wDistance: number | null // (currentPrice / high52w) - 1
     priceHistory: number[] // Last 30 days closing prices for sparkline
 }
 
@@ -121,6 +122,7 @@ export async function getReportData(startDate: Date, endDate: Date, formattedDat
             volatilityRank,
             high52w,
             low52w,
+            high52wDistance: high52w ? (stock.closingPrice / high52w) - 1 : null,
             priceHistory,
         }
     })
