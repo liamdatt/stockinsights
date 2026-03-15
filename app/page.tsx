@@ -32,6 +32,21 @@ export default async function Dashboard() {
           {/* Report Generator - for creating new reports */}
           <ReportGenerator initialDates={availableDates} />
 
+          <section className="mb-8 rounded-lg border border-emerald-100 bg-emerald-50 p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-900">Market Data Export</h3>
+                <p className="mt-1 text-sm text-emerald-700">Download the full stock market dataset as CSV.</p>
+              </div>
+              <a
+                href="/api/market-data/export"
+                className="inline-flex items-center justify-center rounded bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-700"
+              >
+                Export Market Data CSV
+              </a>
+            </div>
+          </section>
+
           {/* Generated Reports Section */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Generated Reports</h2>
